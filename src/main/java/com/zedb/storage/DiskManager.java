@@ -25,10 +25,13 @@ public class DiskManager implements AutoCloseable{
         return pageId;
     }
 
-    public Page readPage(int PageId) throws Exception {
+    public Page readPage(int pageId) throws IOException {
         long fileSize = file.length();
-        long offset = (long) PageId * Page.PAGE_SIZE;
+        long offset = (long) pageId * Page.PAGE_SIZE;
         byte[] data = new byte[Page.PAGE_SIZE];
+        if (pageId < 0 || offset + Page.PAGE_SIZE > fileSize) {
+            throw new IllegalArgumentException("Page does not exist: " + pageId);
+        }
 
         file.seek(offset);
         file.readFully(data);

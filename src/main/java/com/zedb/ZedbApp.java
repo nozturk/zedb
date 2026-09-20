@@ -1,28 +1,26 @@
 package com.zedb;
 
+import com.zedb.storage.BufferPool;
 import com.zedb.storage.DiskManager;
 import com.zedb.storage.Page;
 import com.zedb.storage.Person;
 
 public class ZedbApp {
-    public static void main(String[] args) throws Exception {
+     static void main(String[] args) throws Exception {
 
-        // First process
         try (DiskManager disk = new DiskManager("database.db")) {
+            disk.allocatePage();
+            BufferPool bufferPool = new BufferPool(disk, 3);
 
-            int pageId = disk.allocatePage();
+            Page page = bufferPool.getPage(0);
 
-            Page page = disk.readPage(pageId);
+            page.insert(new Person(1, 44));
 
-            int slotId = page.insert(new Person(1, 44));
+            bufferPool.markDirty(0);
 
-            disk.writePage(pageId, page);
-
-            System.out.println("pageId = " + pageId);
-            System.out.println("slotId = " + slotId);
+            bufferPool.flushAll();
         }
 
-        // Simulate a completely new process
         try (DiskManager disk = new DiskManager("database.db")) {
 
             Page page = disk.readPage(0);
@@ -32,5 +30,6 @@ public class ZedbApp {
             System.out.println(person);
         }
     }
+
 
 }
