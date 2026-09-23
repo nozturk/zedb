@@ -1,35 +1,31 @@
 package com.zedb;
 
-import com.zedb.storage.BufferPool;
-import com.zedb.storage.DiskManager;
-import com.zedb.storage.Page;
-import com.zedb.storage.Person;
+import com.zedb.storage.*;
 
 public class ZedbApp {
      static void main(String[] args) throws Exception {
 
-        try (DiskManager disk = new DiskManager("database.db")) {
-            disk.allocatePage();
-            BufferPool bufferPool = new BufferPool(disk, 3);
+         try (DiskManager disk =
+                      new DiskManager("database.db")) {
 
-            Page page = bufferPool.getPage(0);
+             BufferPool bufferPool =
+                     new BufferPool(disk, 3);
 
-            page.insert(new Person(1, 44));
+             HeapFile heapFile =
+                     new HeapFile(disk, bufferPool);
 
-            bufferPool.markDirty(0);
+             RecordId id =
+                     heapFile.insert(new Person(1, 44));
 
-            bufferPool.flushAll();
-        }
+             System.out.println("Record ID = " + id);
 
-        try (DiskManager disk = new DiskManager("database.db")) {
+             Person person = heapFile.get(id);
 
-            Page page = disk.readPage(0);
+             System.out.println(person);
 
-            Person person = page.readRecord(0);
-
-            System.out.println(person);
-        }
-    }
+             bufferPool.flushAll();
+         }
+     }
 
 
 }

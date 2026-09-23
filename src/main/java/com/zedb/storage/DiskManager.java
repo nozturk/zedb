@@ -44,6 +44,17 @@ public class DiskManager implements AutoCloseable{
         file.seek(offset);
         file.write(page.getData());
     }
+
+    public long getPageCount() throws IOException {
+        long fileSize = file.length();
+        if (fileSize % Page.PAGE_SIZE != 0) {
+            throw new IllegalStateException(
+                    "Corrupted database file"
+            );
+        }
+
+        return fileSize / Page.PAGE_SIZE;
+    }
     @Override
     public void close() throws Exception {
 
